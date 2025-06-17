@@ -193,7 +193,7 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -380,webhookId
+        -380,
         -80
       ],
       "id": "6e89a406-2200-4dd1-83fe-408bcf7c17e7",
