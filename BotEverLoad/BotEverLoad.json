@@ -20,7 +20,7 @@
       "typeVersion": 3.4,
       "position": [
         600,
-        -100
+        -300
       ],
       "id": "ba91f9e7-b5d2-4d2d-9541-03f5b7e9d30f",
       "name": "Edit Fields"
@@ -33,47 +33,24 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        800,
-        -100
+        840,
+        -300
       ],
       "id": "53eba75b-fccb-4d00-91d4-c32e99d4844e",
       "name": "HTTP Request1"
     },
     {
       "parameters": {
-        "jsCode": "const texto = $json.message.text?.toLowerCase().trim() || \"\";\n\nlet tipo = \"ia\";\nlet query = texto;\nlet esDescarga = false;\n\nif (texto.startsWith(\"/descarga\")) {\n  tipo = \"descarga\";\n  query = texto.replace(\"/descarga\", \"\").trim();\n  esDescarga = true;\n}\n\nreturn [\n  {\n    json: {\n      tipo,\n      query,\n      esDescarga,\n    }\n  }\n];\n"
+        "jsCode": "const textoOriginal = $json.message.text?.trim() || \"\";\nconst texto = textoOriginal.toLowerCase();\n\nlet tipo = \"ia\";  // Por defecto\nlet query = textoOriginal;\nlet esDescarga = false;\n\nif (texto.startsWith(\"/musica \")) {\n  tipo = \"musica\";\n  query = textoOriginal.slice(8).trim();\n  esDescarga = true;\n} else if (texto.startsWith(\"/video \")) {\n  tipo = \"video\";\n  query = textoOriginal.slice(7).trim();\n  esDescarga = true;\n} else if (texto.startsWith(\"/twitter \")) {\n  tipo = \"twitter\";\n  query = encodeURIComponent(textoOriginal.slice(9).trim());\n  esDescarga = true;\n} else if (texto.startsWith(\"/instagram \")) {\n  tipo = \"instagram\";\n  query = encodeURIComponent(textoOriginal.slice(11).trim());\n  esDescarga = true;\n} else if (texto.startsWith(\"/facebook \")) {\n  tipo = \"facebook\";\n  query = encodeURIComponent(textoOriginal.slice(10).trim());\n  esDescarga = true;\n}\n\nreturn [\n  {\n    json: {\n      tipo,\n      query,\n      esDescarga\n    }\n  }\n];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -20,
-        -80
+        -120,
+        -280
       ],
       "id": "3082bbca-ec5e-4e5d-877f-3aa735a81549",
       "name": "Code"
-    },
-    {
-      "parameters": {
-        "url": "=http://host.docker.internal:8080/api/downloadMusic?videoId={{ $json.items[0].id.videoId }}\n&format=mp3\n",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "id",
-              "value": "={{ $json.id.videoId }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1000,
-        -100
-      ],
-      "id": "043a3233-c88f-48d2-9d30-effd28c47ee4",
-      "name": "HTTP Request2"
     },
     {
       "parameters": {
@@ -89,8 +66,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1240,
-        -100
+        1100,
+        -300
       ],
       "id": "b9b9c68c-1c42-425e-9c45-769c0397ab6b",
       "name": "HTTP Request3"
@@ -105,15 +82,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1460,
-        -100
+        1340,
+        -300
       ],
       "id": "f154f6b6-0cd1-471a-a8a2-a0d60bc96dbf",
       "name": "Telegram",
       "webhookId": "64096826-6d6b-463c-b7ff-291390b7e9af",
       "credentials": {
         "telegramApi": {
-          "id": "Lvfddn3KipVBC5AO",
+          "id": "",
           "name": "Telegram account"
         }
       }
@@ -127,7 +104,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer {{OPENROUTER_API_KEY}}"
+              "value": ""
             },
             {
               "name": "Content-Type",
@@ -137,14 +114,14 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"mistralai/mixtral-8x7b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Eres EverLoad, un asistente simpático y útil dentro de Telegram. Puedes conversar con los usuarios, resolver dudas básicas y explicar cómo usar tus funciones. Cuando un usuario quiera descargar música, debe usar el comando: /descarga [nombre de la canción]. Responde de forma clara, informal y cercana.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.message.text }}\"\n    }\n  ]\n}\n",
+        "jsonBody": "={\n  \"model\": \"mistralai/mixtral-8x7b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Eres EverLoad, un asistente simpático y útil dentro de Telegram. Puedes conversar con los usuarios, resolver dudas básicas y explicar cómo usar tus funciones.\\n\\nPara descargar algo, el usuario debe usar uno de estos comandos:\\n\\n- /musica [nombre de la canción] → descarga la canción en MP3 desde YouTube\\n- /video [nombre del vídeo] → descarga el vídeo en MP4 desde YouTube\\n- /twitter [enlace] → descarga el vídeo desde Twitter o X\\n- /instagram [enlace] → descarga el vídeo desde Instagram\\n- /facebook [enlace] → descarga el vídeo desde Facebook\\n\\nTu tarea es responder de forma clara, informal y cercana. Si el usuario intenta escribir el nombre de una canción sin el comando, puedes sugerir que use /musica o explicarle cómo hacerlo correctamente. También puedes contar un chascarrillo si pega con la situación 😉\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.query}}\"\n    }\n  ]\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         660,
-        140
+        900
       ],
       "id": "7ccd5175-3e09-41eb-b8ad-131b2574501a",
       "name": "HTTP Request"
@@ -161,8 +138,8 @@
           "conditions": [
             {
               "id": "747afb43-e354-4862-b561-de7b755b0456",
-              "leftValue": "={{ $json.esDescarga }}",
-              "rightValue": "true",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "musica",
               "operator": {
                 "type": "string",
                 "operation": "equals"
@@ -177,61 +154,16 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        300,
-        -80
+        120,
+        -280
       ],
       "id": "ab95d5fc-5c35-41a0-8502-891ee171845b",
       "name": "If"
     },
     {
       "parameters": {
-        "updates": [
-          "message"
-        ],
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -380,
-        -80
-      ],
-      "id": "6e89a406-2200-4dd1-83fe-408bcf7c17e7",
-      "name": "Telegram Trigger",
-      "webhookId": "",
-      "credentials": {
-        "telegramApi": {
-          "id": "{{TELEGRAM_CREDENTIAL_ID}}",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}\n",
-        "text": "={{ $json.choices[0].message.content }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        920,
-        140
-      ],
-      "id": "b1003cec-9471-477a-868c-f9e39e84e589",
-      "name": "Telegram2",
-      "webhookId": "1f0418c8-10b8-4f88-93ef-ff07f54c839b",
-      "credentials": {
-        "telegramApi": {
-          "id": "Lvfddn3KipVBC5AO",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "content": "Este bloque se activa cuando el usuario envía el comando /descarga [nombre de la canción]. Aquí se ejecuta el proceso para buscar el vídeo en YouTube y descargar el archivo en formato MP3:\n\nEdit Fields: Se establece la URL de búsqueda usando el texto del usuario (query).\n\nHTTP Request1: Realiza la búsqueda del vídeo en YouTube usando el backend de EverLoad.\n\nHTTP Request2: Llama al endpoint de descarga del backend para preparar el archivo MP3.\n\nHTTP Request3: Obtiene el archivo MP3 como respuesta binaria.\n\nTelegram: Envía el archivo descargado como documento al usuario a través de Telegram.",
-        "height": 440,
+        "content": "🤖 Funciones disponibles para el usuario\nComando\tAcción que realiza\n/musica\tDescarga canción en formato MP3 desde YouTube\n/video\tDescarga vídeo en formato MP4 desde YouTube\n/twitter\tDescarga vídeo desde un tweet (X)\n/instagram\tDescarga reels, publicaciones o historias\n/facebook\tDescarga vídeos públicos desde enlaces de Facebook ",
+        "height": 1280,
         "width": 1080,
         "color": 2
       },
@@ -239,7 +171,7 @@
       "typeVersion": 1,
       "position": [
         560,
-        -380
+        -460
       ],
       "id": "84b20bdc-afc9-4551-a722-6c56fc058e2c",
       "name": "Sticky Note1"
@@ -254,15 +186,15 @@
       "typeVersion": 1,
       "position": [
         -460,
-        -240
+        -440
       ],
       "id": "3698eac0-8d5d-4047-b26c-9e71c3a57148",
       "name": "Sticky Note"
     },
     {
       "parameters": {
-        "content": "\nCode: Clasifica el mensaje recibido. Si empieza por /descarga, lo marca como tipo \"descarga\" y extrae la query. Si no, lo trata como conversación con IA.\n\nIf: Evalúa si el mensaje es para descarga (esDescarga = true). Según el resultado, redirige al flujo de descarga (bloque marrón) o al de conversación (bloque rojo).\n\n",
-        "height": 340,
+        "content": "Este nodo analiza el texto del mensaje y define 3 variables clave:\n\ntipo: qué tipo de acción es (musica, video, twitter, instagram, facebook, o ia)\n\nquery: contenido a procesar (nombre de la canción o URL)\n\nesDescarga: si el mensaje requiere descarga (true) o es una conversación (false)\n\n\n",
+        "height": 1280,
         "width": 660,
         "color": 6
       },
@@ -270,14 +202,14 @@
       "typeVersion": 1,
       "position": [
         -140,
-        -240
+        -460
       ],
       "id": "eaf8b46f-d551-40f6-84dc-fd33f0a77dfc",
       "name": "Sticky Note6"
     },
     {
       "parameters": {
-        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nEste bloque se activa cuando el mensaje no comienza con /descarga. En ese caso, el mensaje se envía a la IA de OpenRouter (modelo Mixtral) para obtener una respuesta conversacional:\n\nHTTP Request: Envia el mensaje del usuario a OpenRouter con un prompt personalizado para actuar como el asistente \"EverLoad\".\n\nTelegram2: Responde al usuario en Telegram con el contenido generado por la IA.\n\n",
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nEste bloque se activa cuando el mensaje no comienza los demás servicios de descarga. En ese caso, el mensaje se envía a la IA de OpenRouter (modelo Mixtral) para obtener una respuesta conversacional:\n\nHTTP Request: Envia el mensaje del usuario a OpenRouter con un prompt personalizado para actuar como el asistente \"EverLoad\".\n\nTelegram2: Responde al usuario en Telegram con el contenido generado por la IA.\n\n",
         "height": 400,
         "width": 1080,
         "color": 3
@@ -286,10 +218,401 @@
       "typeVersion": 1,
       "position": [
         560,
-        100
+        860
       ],
       "id": "4e98da51-1936-40c0-a7c7-6788b872b178",
       "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1917f190-4579-4d0f-808f-5189f88954e8",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "video",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        -60
+      ],
+      "id": "3c79ae48-2a3c-45ad-8783-8db6ce7fea3e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad341f76-a192-4613-b82a-79b9fb232b67",
+              "name": "tituloBuscado",
+              "value": "=http://host.docker.internal:8080/api/youtube/search?query={{ $json.query }}\n\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        620,
+        -80
+      ],
+      "id": "9d085b0d-4e9c-423c-b033-99f596470eac",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/api/youtube/search?query={{ $json[\"query\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        -80
+      ],
+      "id": "10c05d1e-4374-459f-b691-cd455d9750d8",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/api/downloadVideo?videoId={{ $json.items[0].id.videoId }}&resolution=1080p\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -80
+      ],
+      "id": "fac2e808-6838-48bb-b4b0-4f8c02661dd9",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        -80
+      ],
+      "id": "970f1131-5246-47b8-a3e6-ddbcf62fa895",
+      "name": "Telegram1",
+      "webhookId": "64096826-6d6b-463c-b7ff-291390b7e9af",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}\n",
+        "text": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        900
+      ],
+      "id": "b1003cec-9471-477a-868c-f9e39e84e589",
+      "name": "Telegram2",
+      "webhookId": "1f0418c8-10b8-4f88-93ef-ff07f54c839b",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d510d2f7-ee13-4638-aabc-906490228da9",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "twitter",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        200
+      ],
+      "id": "f1be7505-7332-44ea-9176-e210196cfa66",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/api/downloadTwitter?url={{ $json.query }}\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        180
+      ],
+      "id": "0e9ce225-a7db-4ced-9d0b-e7b729c2014f",
+      "name": "HTTP Request8"
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        180
+      ],
+      "id": "50c509cd-0f0a-4567-b6d2-f7f2e62b4002",
+      "name": "Telegram3",
+      "webhookId": "64096826-6d6b-463c-b7ff-291390b7e9af",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/api/downloadInstagram?url={{ $json.query }}\n\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        420
+      ],
+      "id": "a446e48d-6a0f-4c52-8b60-6080d405939d",
+      "name": "HTTP Request9"
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        420
+      ],
+      "id": "1a9f7eb0-698b-4d70-a395-cdb0ac22c4fa",
+      "name": "Telegram4",
+      "webhookId": "64096826-6d6b-463c-b7ff-291390b7e9af",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d510d2f7-ee13-4638-aabc-906490228da9",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "instagram",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        440
+      ],
+      "id": "025949f3-8943-4418-bed3-6d758678fa2c",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d510d2f7-ee13-4638-aabc-906490228da9",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "facebook",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        680
+      ],
+      "id": "1652eeb4-e7dc-41d8-b772-5aae2bf71872",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8080/api/downloadFacebook?url={{ $json.query }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        660
+      ],
+      "id": "a9cbc5c1-b01d-47b4-9372-96c92d3d1910",
+      "name": "HTTP Request10"
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        660
+      ],
+      "id": "aae08513-97a6-46d6-acc3-ceaaa6302d9e",
+      "name": "Telegram5",
+      "webhookId": "64096826-6d6b-463c-b7ff-291390b7e9af",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -420,
+        -280
+      ],
+      "id": "6e89a406-2200-4dd1-83fe-408bcf7c17e7",
+      "name": "Telegram Trigger",
+      "webhookId": "6f213324-aa06-4276-b653-d743ff668d94",
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -317,17 +640,6 @@
       ]
     },
     "HTTP Request1": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request2": {
       "main": [
         [
           {
@@ -371,7 +683,7 @@
         ],
         [
           {
-            "node": "HTTP Request",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -381,6 +693,144 @@
     "Telegram": {
       "main": [
         []
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request8": {
+      "main": [
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request9": {
+      "main": [
+        [
+          {
+            "node": "Telegram4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request9",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request10": {
+      "main": [
+        [
+          {
+            "node": "Telegram5",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Telegram Trigger": {
@@ -399,7 +849,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fde435e8-d3bd-412d-b8e4-3b22d60c84db",
+  "versionId": "1d67645d-4f1e-422a-8337-4f35d02196c5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "80ef98da8979a27cad2777afb1476b93a9d8e1f6cb670b98348c311fc48574da"

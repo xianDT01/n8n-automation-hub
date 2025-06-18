@@ -5,6 +5,6 @@ Este repositorio incluye varios flujos creados para automatizar tareas con [n8n]
 ---
 
 ## 🤖 BotEverLoad
-Flujo para gestionar un bot de Telegram con IA y descargas musicales.
+Flujo para gestionar un bot de Telegram con IA y descargas de canciones y vídeos.
 
 👉 [Ver documentación completa](BotEverLoad/README.md)

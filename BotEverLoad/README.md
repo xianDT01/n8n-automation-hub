@@ -1,15 +1,22 @@
 # 🤖 BotEverLoad para n8n
 
-Este flujo de trabajo para [n8n](https://n8n.io/) permite integrar un bot de Telegram que conversa con los usuarios y descarga canciones desde YouTube. Utiliza inteligencia artificial a través de OpenRouter y requiere una app backend llamada **EverLoad** para realizar las búsquedas y descargas.
+Este flujo de trabajo para [n8n](https://n8n.io/) permite integrar un bot de Telegram que conversa con los usuarios y descarga música y vídeos desde múltiples plataformas. Utiliza inteligencia artificial (IA) a través de OpenRouter y se conecta con una app backend llamada **EverLoad**, desarrollada en Spring Boot.
 
 ---
 
 ## 🚀 Funcionalidades
 
-- Interacción conversacional con IA (modelo Mixtral vía OpenRouter)
-- Descarga de canciones en MP3 desde YouTube
-- Envío del archivo directamente al chat de Telegram
-- Detección del comando `/descarga [nombre]` para distinguir entre conversación e instrucciones
+- ✅ Interacción conversacional con IA (modelo Mixtral vía OpenRouter)
+- 🎵 Descarga de canciones en MP3 desde YouTube mediante `/musica [nombre]`
+- 🎬 Descarga de vídeos en MP4 desde YouTube mediante `/video [nombre]`
+- 🐦 Descarga de vídeos desde Twitter/X mediante `/twitter [enlace]`
+- 📸 Descarga de reels o publicaciones desde Instagram mediante `/instagram [enlace]`
+- 📘 Descarga de vídeos desde Facebook mediante `/facebook [enlace]`
+- 📎 Envío del archivo directamente al chat de Telegram como documento
+- 🧠 Respuestas automáticas si el mensaje no incluye comandos (modo asistente)
+- 📋 Menú desplegable de comandos dentro del bot con `setMyCommands`
+- 🌍 IA que explica cómo usar el bot si el mensaje no es reconocido
+- 🌐 Multiplataforma: integración con backend Spring Boot + Swagger + Angular
 
 ---
 
@@ -39,13 +46,25 @@ Este flujo de trabajo para [n8n](https://n8n.io/) permite integrar un bot de Tel
      ```
      http://host.docker.internal:8080
      ```
-   - Si usas otro host (por ejemplo, en nube), cambia las URLs en los nodos HTTP del flujo.
+   - Si usas otro host (por ejemplo, en nube o localhost), cambia las URLs en los nodos HTTP del flujo.
 
 ---
 
-## 📌 Nota
+## 🗂 Comandos disponibles
 
-Si usas este flujo en otro entorno que no sea Docker, revisa y ajusta las URLs (`host.docker.internal`) por IPs locales o dominios públicos según tu despliegue.
+| Comando             | Acción                                                      |
+|---------------------|-------------------------------------------------------------|
+| `/musica [nombre]`  | Descarga el audio en MP3 desde YouTube                      |
+| `/video [nombre]`   | Descarga el vídeo en MP4 desde YouTube                      |
+| `/twitter [enlace]` | Descarga un vídeo desde Twitter/X                           |
+| `/instagram [url]`  | Descarga reels o publicaciones desde Instagram              |
+| `/facebook [url]`   | Descarga vídeos públicos desde Facebook                     |
+
+---
+
+## 📌 Nota técnica
+
+Si usas este flujo fuera de Docker o en producción, revisa y adapta las URLs `host.docker.internal` por IPs o dominios públicos según tu entorno.
 
 ---
 
